@@ -1,13 +1,13 @@
 {
   "users": {
-    "naelisy": {
+    "bluedev": {
       "password": "12345",
       "createdAt": "2025-11-10T19:43:15.828Z",
       "repoConfig": {
-        "owner": "iLyxxDev",
-        "repo": "webpanel",
+        "owner": "bluetokenss",
+        "repo": "database",
         "branch": "main",
-        "file": "users"
+        "file": " token"
       }
     },
     "naelishere": {
