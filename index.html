@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naeri Token Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        /* Auth Screen Styles */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .auth-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .auth-header h1 {
+            font-size: 2.2rem;
+            font-weight: 300;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            letter-spacing: -0.5px;
+        }
+        
+        .auth-header p {
+            color: #6c757d;
+            font-size: 1rem;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .auth-tab.active {
+            color: #2c3e50;
+            border-bottom: 2px solid #2c3e50;
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
+        
+        /* Dashboard Styles */
+        .dashboard-container {
+            display: none;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 300;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            letter-spacing: -0.5px;
+        }
+        
+        .subtitle {
+            color: #6c757d;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+        
+        .card h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-weight: 500;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .card h2 i {
+            font-size: 1.3rem;
+            color: #495057;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #495057;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            background: #ffffff;
+            color: #2c3e50;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #2c3e50;
+            box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+        }
+        
+        button {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+        
+        button:hover:not(:disabled) {
+            background: #34495e;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(44, 62, 80, 0.15);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: #5a6268;
+        }
+        
+        .status-message {
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            white-space: pre-line;
+            font-size: 0.95rem;
+            border-left: 4px solid transparent;
+        }
+        
+        .success {
+            background: #f8fff9;
+            border-color: #28a745;
+            color: #155724;
+        }
+        
+        .error {
+            background: #fff8f8;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        
+        .warning {
+            background: #fffef8;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        
+        .info {
+            background: #f8fdff;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+        
+        .token-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+        }
+        
+        .token-item {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+        
+        .token-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .token-item:last-child {
+            border-bottom: none;
+        }
+        
+        .token-text {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            word-break: break-all;
+            flex: 1;
+            margin-right: 20px;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+        
+        .token-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            width: auto;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid transparent;
+            border-radius: 50%;
+            border-top-color: #ffffff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            color: #6c757d;
+            font-size: 0.9rem;
+            padding-top: 30px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .config-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .config-section h3 {
+            margin-bottom: 15px;
+            color: #495057;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        .troubleshoot-section {
+            background: #fffef8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .troubleshoot-section h4 {
+            color: #856404;
+            margin-bottom: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .troubleshoot-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .troubleshoot-list li {
+            margin-bottom: 8px;
+            padding-left: 24px;
+            position: relative;
+            color: #856404;
+        }
+        
+        .troubleshoot-list li:before {
+            content: "•";
+            color: #ffc107;
+            position: absolute;
+            left: 12px;
+            font-weight: bold;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #dee2e6;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        @media (max-width: 480px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card-full {
+            grid-column: 1 / -1;
+        }
+        
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            width: auto;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        
+        .setup-info {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .setup-info h3 {
+            color: #0066cc;
+            margin-bottom: 10px;
+        }
+        
+        .setup-info ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .setup-info li {
+            margin-bottom: 8px;
+        }
+        
+        .setup-info code {
+            background: #f1f8ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .github-config-section {
+            background: #f0f8ff;
+            border: 1px solid #cce5ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .github-config-section h4 {
+            color: #0066cc;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-note {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 5px;
+            display: block;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Authentication Screen -->
+    <div class="auth-container" id="authScreen">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1><i class="fas fa-key"></i> Naeri Token</h1>
+                <p>Khusus Reseller Script Naeri, ketahuan nyebar website? Blacklist!</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="signInTab">Sign In</div>
+                <div class="auth-tab" id="signUpTab">Sign Up</div>
+            </div>
+            
+            <div class="auth-form active" id="signInForm">
+                <div class="form-group">
+                    <label for="signInUsername">Username</label>
+                    <input type="text" id="signInUsername" placeholder="Masukkan username" />
+                </div>
+                <div class="form-group">
+                    <label for="signInPassword">Password</label>
+                    <input type="password" id="signInPassword" placeholder="Masukkan password" />
+                </div>
+                <button id="signInBtn">
+                    <i class="fas fa-sign-in-alt"></i> Masuk
+                </button>
+                <div id="signInStatus" class="status-message"></div>
+            </div>
+            
+            <div class="auth-form" id="signUpForm">
+                <div class="github-config-section">
+                    <h4><i class="fab fa-github"></i> Account Configuration</h4>
+                    <div class="form-group">
+                        <label for="signUpGithubToken">Reseller Access Token</label>
+                        <input type="password" id="signUpGithubToken" placeholder="Masukkan Token" />
+                        <span class="form-note">Token ini digunakan untuk Akses Login dari @naeldev</span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="signUpRepoOwner">Owner</label>
+                            <input type="password" id="signUpRepoOwner" placeholder="username-github-anda" value="iLyxxDev" />
+                            <span class="form-note">Username GitHub Anda</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="signUpRepoName">Repository Name</label>
+                            <input type="password" id="signUpRepoName" placeholder="nama-repository" value="webpanel" />
+                            <span class="form-note">Nama repository</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="signUpBranchName">Branch</label>
+                            <input type="password" id="signUpBranchName" placeholder="main" value="main" />
+                            <span class="form-note">Branch repository</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="signUpFileName">File Name</label>
+                            <input type="password" id="signUpFileName" placeholder="users" value="users" />
+                            <span class="form-note">Nama file</span>
+                        </div>
+                    </div>
+                    <button id="testSignUpConnectionBtn" class="btn-secondary">
+                        <i class="fas fa-plug"></i> Sambungkan
+                    </button>
+                    <div id="signUpConnectionStatus" class="status-message"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="signUpUsername">Username</label>
+                    <input type="text" id="signUpUsername" placeholder="Username untuk login" />
+                </div>
+                <div class="form-group">
+                    <label for="signUpPassword">Password</label>
+                    <input type="password" id="signUpPassword" placeholder="Password yang kuat" />
+                </div>
+                <div class="form-group">
+                    <label for="signUpConfirmPassword">Konfirmasi Password</label>
+                    <input type="password" id="signUpConfirmPassword" placeholder="Ulangi Password" />
+                </div>
+                <button id="signUpBtn">
+                    <i class="fas fa-user-plus"></i> Daftar
+                </button>
+                <div id="signUpStatus" class="status-message"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dashboard Screen -->
+    <div class="dashboard-container" id="dashboardScreen">
+        <div class="user-info">
+            <span id="currentUser">User</span>
+            <button class="logout-btn" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+        
+        <header>
+            <h1><i class="fas fa-key"></i> Naeri Access Token</h1>
+            <p class="subtitle">Khusus Reseller Script Naeri, ketahuan nyebar website? Blacklist!</p>
+        </header>
+        
+        <div class="card-grid">
+            <div class="card">
+                <h2><i class="fas fa-cog"></i> Configuration</h2>
+                <div class="config-section">
+                    <div class="form-group">
+                        <label for="githubToken">Reseller Access</label>
+                        <input type="password" id="githubToken" placeholder="Masukkan Token"/>
+                        <span class="form-note">Token ini digunakan untuk Akses Login</span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="repoOwner">Repository Owner</label>
+                            <input type="password" id="repoOwner" value="iLyxxDev"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="repoName">Repository Name</label>
+                            <input type="password" id="repoName" value="database"/>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="branchName">Branch</label>
+                            <input type="password" id="branchName" value="main" />
+                        </div>
+                        <div class="form-group">
+                            <label for="fileName">Nama File</label>
+                            <input type="password" id="fileName" value="token" />
+                        </div>
+                    </div>
+                    <button id="testConnectionBtn">
+                        <i class="fas fa-plug"></i> Sambungkan
+                    </button>
+                    <div id="connectionStatus" class="status-message"></div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2><i class="fas fa-plus-circle"></i> Add New Token</h2>
+                <div class="form-group">
+                    <label for="tokenInput">Bot Token:</label>
+                    <input type="text" id="tokenInput" placeholder="Contoh: 1234567890:ABCDEFGHIJKLMNOPQRSTUVWXYZ" />
+                </div>
+                <button id="addTokenBtn">
+                    <i class="fas fa-plus"></i> Add Token
+                </button>
+                <div id="addTokenStatus" class="status-message"></div>
+            </div>
+        </div>
+        
+        <div class="card card-full">
+            <h2><i class="fas fa-list"></i> Token List</h2>
+            <div class="form-group">
+                <button id="refreshTokensBtn" style="width: auto; display: inline-flex;">
+                    <i class="fas fa-sync-alt"></i> Refresh Tokens
+                </button>
+            </div>
+            <div id="tokenList" class="token-list">
+                <div class="empty-state">
+                    <i class="fas fa-key"></i>
+                    <p>No tokens found. Add your first token to get started.</p>
+                </div>
+            </div>
+            <div id="tokenListStatus" class="status-message"></div>
+        </div>
+        
+        <div class="footer">
+            <p>Telegram &copy; @naeldev</p>
+        </div>
+    </div>
+
+    <script>
+        // Authentication System dengan GitHub Storage
+        let currentUser = localStorage.getItem('tokenDashboardCurrentUser') || '';
+        let useProxy = false;
+        const PROXY_URL = 'https://cors-anywhere.herokuapp.com/';
+        
+        // Fungsi untuk mendapatkan konfigurasi repository user dari form sign up
+        function getSignUpRepoConfig() {
+            return {
+                owner: document.getElementById('signUpRepoOwner').value.trim(),
+                repo: document.getElementById('signUpRepoName').value.trim(),
+                branch: document.getElementById('signUpBranchName').value.trim() || 'main',
+                file: document.getElementById('signUpFileName').value.trim() || 'users'
+            };
+        }
+        
+        // Fungsi untuk mendapatkan GitHub Token dari form sign up
+        function getSignUpGitHubToken() {
+            return document.getElementById('signUpGithubToken').value.trim();
+        }
+        
+        // Fungsi untuk mendapatkan konfigurasi repository user dari dashboard
+        function getDashboardRepoConfig() {
+            return {
+                owner: document.getElementById('repoOwner').value.trim(),
+                repo: document.getElementById('repoName').value.trim(),
+                branch: document.getElementById('branchName').value.trim() || 'main',
+                file: document.getElementById('fileName').value.trim() || 'users'
+            };
+        }
+        
+        // Fungsi untuk mendapatkan GitHub Token dari dashboard
+        function getDashboardGitHubToken() {
+            return document.getElementById('githubToken').value.trim();
+        }
+        
+        // Fungsi untuk mendapatkan URL user data
+        function getUserURLs(config) {
+            const baseRawURL = `https://raw.githubusercontent.com/${config.owner}/${config.repo}/${config.branch}`;
+            const baseAPIURL = `https://api.github.com/repos/${config.owner}/${config.repo}/contents`;
+            
+            return {
+                raw: `${baseRawURL}/${config.file}`,
+                api: `${baseAPIURL}/${config.file}`
+            };
+        }
+        
+        // Fungsi untuk menampilkan halaman auth
+        function showAuthScreen() {
+            document.getElementById('authScreen').style.display = 'flex';
+            document.getElementById('dashboardScreen').style.display = 'none';
+            currentUser = '';
+            localStorage.removeItem('tokenDashboardCurrentUser');
+        }
+        
+        // Fungsi untuk menampilkan dashboard
+        function showDashboard() {
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('dashboardScreen').style.display = 'block';
+            document.getElementById('currentUser').textContent = currentUser;
+            loadTokenList();
+        }
+        
+        // Fungsi untuk menampilkan pesan status
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status-message ${type}`;
+            element.style.display = 'block';
+        }
+        
+        // Fungsi untuk menampilkan loading state pada button
+        function setButtonLoading(buttonId, isLoading) {
+            const button = document.getElementById(buttonId);
+            if (isLoading) {
+                button.disabled = true;
+                const originalText = button.innerHTML;
+                button.setAttribute('data-original-text', originalText);
+                button.innerHTML = '<div class="loading"></div> Processing...';
+            } else {
+                button.disabled = false;
+                const originalText = button.getAttribute('data-original-text');
+                if (originalText) {
+                    button.innerHTML = originalText;
+                }
+            }
+        }
+        
+        // Fungsi untuk membuat request dengan error handling yang lebih baik
+        async function makeRequest(url, options = {}) {
+            const finalUrl = useProxy ? PROXY_URL + url : url;
+            
+            try {
+                const response = await axios({
+                    url: finalUrl,
+                    method: options.method || 'GET',
+                    headers: {
+                        'Authorization': options.token ? `token ${options.token}` : undefined,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/vnd.github.v3+json',
+                        ...options.headers
+                    },
+                    data: options.data,
+                    timeout: 30000, // 30 second timeout
+                    validateStatus: function (status) {
+                        return status >= 200 && status < 300;
+                    }
+                });
+                
+                return { success: true, data: response.data };
+            } catch (error) {
+                console.error('Request error:', error);
+                
+                if (error.response) {
+                    // Server responded with error status
+                    return { 
+                        success: false, 
+                        error: `GitHub API Error: ${error.response.status} - ${error.response.data?.message || 'Unknown error'}` 
+                    };
+                } else if (error.request) {
+                    // Request was made but no response received
+                    return { 
+                        success: false, 
+                        error: 'Network Error: Cannot connect to GitHub. Check your internet connection.' 
+                    };
+                } else {
+                    // Something else happened
+                    return { 
+                        success: false, 
+                        error: `Error: ${error.message}` 
+                    };
+                }
+            }
+        }
+        
+        // Fungsi untuk mengambil data user dari GitHub
+        async function fetchUsers(config, githubToken) {
+            const urls = getUserURLs(config);
+            const result = await makeRequest(urls.raw);
+            
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            
+            try {
+                const data = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
+                return data.users || {};
+            } catch (parseError) {
+                // Jika file belum ada, return object kosong
+                if (result.data.includes('404: Not Found')) {
+                    return {};
+                }
+                throw new Error('Failed to parse user data: ' + parseError.message);
+            }
+        }
+        
+        // Fungsi untuk mendapatkan SHA file user saat ini
+        async function getUserFileSHA(config, githubToken) {
+            const urls = getUserURLs(config);
+            
+            const result = await makeRequest(urls.api, { token: githubToken });
+            
+            if (!result.success) {
+                // Jika file belum ada, return null
+                if (result.error.includes('404')) {
+                    return null;
+                }
+                throw new Error(result.error);
+            }
+            
+            return result.data.sha;
+        }
+        
+        // Fungsi untuk memperbarui data user di GitHub
+        async function updateUsers(newUsers, config, githubToken) {
+            const urls = getUserURLs(config);
+            
+            // Dapatkan SHA terbaru (jika file sudah ada)
+            const sha = await getUserFileSHA(config, githubToken);
+            
+            const updatedContent = btoa(JSON.stringify({ users: newUsers }, null, 2));
+            
+            const result = await makeRequest(urls.api, {
+                method: 'PUT',
+                token: githubToken,
+                data: {
+                    message: "Update user data via Web Dashboard",
+                    content: updatedContent,
+                    sha: sha
+                }
+            });
+            
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            
+            return true;
+        }
+        
+        // Fungsi untuk test koneksi saat sign up
+        async function testSignUpConnection() {
+            const config = getSignUpRepoConfig();
+            const githubToken = getSignUpGitHubToken();
+            
+            if (!githubToken) {
+                showStatus('signUpConnectionStatus', '❌ GitHub Token diperlukan!', 'error');
+                return;
+            }
+            
+            if (!config.owner || !config.repo) {
+                showStatus('signUpConnectionStatus', '❌ Repository Owner dan Name harus diisi!', 'error');
+                return;
+            }
+            
+            try {
+                setButtonLoading('testSignUpConnectionBtn', true);
+                showStatus('signUpConnectionStatus', '🔄 Mengecek koneksi...', 'info');
+                
+                // Coba akses repository user data
+                await getUserFileSHA(config, githubToken);
+                showStatus('signUpConnectionStatus', '✅ Sukses terhubung!', 'success');
+                
+            } catch (error) {
+                console.error('Error testing connection:', error);
+                showStatus('signUpConnectionStatus', '❌ ' + error.message, 'error');
+            } finally {
+                setButtonLoading('testSignUpConnectionBtn', false);
+            }
+        }
+        
+        // Fungsi untuk sign up
+        async function signUp() {
+            const username = document.getElementById('signUpUsername').value.trim();
+            const password = document.getElementById('signUpPassword').value;
+            const confirmPassword = document.getElementById('signUpConfirmPassword').value;
+            const config = getSignUpRepoConfig();
+            const githubToken = getSignUpGitHubToken();
+            
+            if (!username || !password) {
+                showStatus('signUpStatus', 'Username dan password harus diisi!', 'error');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showStatus('signUpStatus', 'Password tidak cocok!', 'error');
+                return;
+            }
+            
+            if (!githubToken) {
+                showStatus('signUpStatus', 'GitHub Token diperlukan!', 'error');
+                return;
+            }
+            
+            if (!config.owner || !config.repo) {
+                showStatus('signUpStatus', 'Repository Owner dan Name harus diisi!', 'error');
+                return;
+            }
+            
+            try {
+                setButtonLoading('signUpBtn', true);
+                showStatus('signUpStatus', '🔄 Memeriksa username...', 'info');
+                
+                let users = await fetchUsers(config, githubToken);
+                
+                if (users[username]) {
+                    showStatus('signUpStatus', 'Username sudah digunakan!', 'error');
+                    setButtonLoading('signUpBtn', false);
+                    return;
+                }
+                
+                showStatus('signUpStatus', '🔄 Menyimpan data user...', 'info');
+                
+                // Tambah user baru
+                users[username] = { 
+                    password: password,
+                    createdAt: new Date().toISOString(),
+                };
+                
+                const success = await updateUsers(users, config, githubToken);
+                
+                if (success) {
+                    showStatus('signUpStatus', '✅ Akun berhasil dibuat! Silakan sign in.', 'success');
+                    
+                    // Reset form
+                    document.getElementById('signUpUsername').value = '';
+                    document.getElementById('signUpPassword').value = '';
+                    document.getElementById('signUpConfirmPassword').value = '';
+                    document.getElementById('signUpGithubToken').value = '';
+                    
+                    // Switch ke tab sign in
+                    document.getElementById('signInTab').click();
+                } else {
+                    showStatus('signUpStatus', '❌ Gagal membuat akun!', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error signing up:', error);
+                showStatus('signUpStatus', '❌ ' + error.message, 'error');
+            } finally {
+                setButtonLoading('signUpBtn', false);
+            }
+        }
+        
+        // Fungsi untuk sign in
+        async function signIn() {
+            const username = document.getElementById('signInUsername').value.trim();
+            const password = document.getElementById('signInPassword').value;
+            
+            if (!username || !password) {
+                showStatus('signInStatus', 'Username dan password harus diisi!', 'error');
+                return;
+            }
+            
+            try {
+                setButtonLoading('signInBtn', true);
+                showStatus('signInStatus', '🔄 Memverifikasi data user...', 'info');
+                
+                // Gunakan konfigurasi default untuk mengambil data user
+                const defaultConfig = {
+                    owner: document.getElementById('signUpRepoOwner').value.trim() || 'iLyxxDev',
+                    repo: document.getElementById('signUpRepoName').value.trim() || 'webpanel',
+                    branch: 'main',
+                    file: 'users'
+                };
+                
+                // Coba dengan token dari form sign up terlebih dahulu
+                let githubToken = getSignUpGitHubToken();
+                let users = {};
+                
+                try {
+                    users = await fetchUsers(defaultConfig, githubToken);
+                } catch (error) {
+                    // Jika gagal, coba dengan konfigurasi lain
+                    console.log('Trying alternative configuration...');
+                }
+                
+                if (!users[username] || users[username].password !== password) {
+                    showStatus('signInStatus', 'Username atau password tidak ditemukan!', 'error');
+                    setButtonLoading('signInBtn', false);
+                    return;
+                }
+                
+                // Login berhasil
+                currentUser = username;
+                localStorage.setItem('tokenDashboardCurrentUser', currentUser);
+                
+                // Isi konfigurasi di dashboard dengan data dari user
+                const userData = users[username];
+                if (userData.repoConfig) {
+                    document.getElementById('repoOwner').value = userData.repoConfig.owner;
+                    document.getElementById('repoName').value = userData.repoConfig.repo;
+                    document.getElementById('branchName').value = userData.repoConfig.branch;
+                    document.getElementById('fileName').value = userData.repoConfig.file;
+                }
+                if (userData.githubToken) {
+                    document.getElementById('githubToken').value = userData.githubToken;
+                }
+                
+                showDashboard();
+                
+            } catch (error) {
+                console.error('Error signing in:', error);
+                showStatus('signInStatus', '❌ ' + error.message, 'error');
+                setButtonLoading('signInBtn', false);
+            }
+        }
+        
+        // Fungsi untuk logout
+        function logout() {
+            showAuthScreen();
+        }
+        
+        // Event listeners untuk auth
+        document.getElementById('signInTab').addEventListener('click', function() {
+            document.getElementById('signInTab').classList.add('active');
+            document.getElementById('signUpTab').classList.remove('active');
+            document.getElementById('signInForm').classList.add('active');
+            document.getElementById('signUpForm').classList.remove('active');
+        });
+        
+        document.getElementById('signUpTab').addEventListener('click', function() {
+            document.getElementById('signUpTab').classList.add('active');
+            document.getElementById('signInTab').classList.remove('active');
+            document.getElementById('signUpForm').classList.add('active');
+            document.getElementById('signInForm').classList.remove('active');
+        });
+        
+        document.getElementById('signInBtn').addEventListener('click', signIn);
+        document.getElementById('signUpBtn').addEventListener('click', signUp);
+        document.getElementById('testSignUpConnectionBtn').addEventListener('click', testSignUpConnection);
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        
+        // Tambah event listener untuk Enter key pada form auth
+        document.getElementById('signInPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                signIn();
+            }
+        });
+        
+        document.getElementById('signUpConfirmPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                signUp();
+            }
+        });
+        
+        // ========== TOKEN MANAGEMENT FUNCTIONS ==========
+        
+        // Fungsi untuk mendapatkan konfigurasi repository token
+        function getTokenRepoConfig() {
+            return {
+                owner: document.getElementById('repoOwner').value.trim() || 'iLyxxDev',
+                repo: document.getElementById('repoName').value.trim() || 'database',
+                branch: document.getElementById('branchName').value.trim() || 'main',
+                file: 'token' // File khusus untuk token
+            };
+        }
+        
+        // Fungsi untuk mendapatkan URL token
+        function getTokenURLs() {
+            const config = getTokenRepoConfig();
+            const baseRawURL = `https://raw.githubusercontent.com/${config.owner}/${config.repo}/${config.branch}`;
+            const baseAPIURL = `https://api.github.com/repos/${config.owner}/${config.repo}/contents`;
+            
+            return {
+                raw: `${baseRawURL}/${config.file}`,
+                api: `${baseAPIURL}/${config.file}`
+            };
+        }
+        
+        // Fungsi untuk mengambil token dari GitHub
+        async function fetchTokens() {
+            const urls = getTokenURLs();
+            const githubToken = getDashboardGitHubToken();
+            
+            const result = await makeRequest(urls.raw);
+            
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            
+            try {
+                const data = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
+                return data.tokens || [];
+            } catch (parseError) {
+                throw new Error('Failed to parse token data: ' + parseError.message);
+            }
+        }
+        
+        // Fungsi untuk mendapatkan SHA file token saat ini
+        async function getTokenFileSHA() {
+            const urls = getTokenURLs();
+            const githubToken = getDashboardGitHubToken();
+            
+            if (!githubToken) {
+                throw new Error('GitHub Token is required for this operation');
+            }
+            
+            const result = await makeRequest(urls.api, { token: githubToken });
+            
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            
+            return result.data.sha;
+        }
+        
+        // Fungsi untuk memperbarui token di GitHub
+        async function updateTokens(newTokens) {
+            const urls = getTokenURLs();
+            const githubToken = getDashboardGitHubToken();
+            
+            if (!githubToken) {
+                throw new Error('GitHub Token is required for this operation');
+            }
+            
+            // Dapatkan SHA terbaru
+            const sha = await getTokenFileSHA();
+            
+            const updatedContent = btoa(JSON.stringify({ tokens: newTokens }, null, 2));
+            
+            const result = await makeRequest(urls.api, {
+                method: 'PUT',
+                token: githubToken,
+                data: {
+                    message: "Update token list via Web Dashboard",
+                    content: updatedContent,
+                    sha: sha
+                }
+            });
+            
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            
+            return true;
+        }
+        
+        // Fungsi untuk memuat daftar token
+        async function loadTokenList() {
+            const tokenList = document.getElementById('tokenList');
+            const statusElement = document.getElementById('tokenListStatus');
+            
+            tokenList.innerHTML = '<div style="padding: 20px; text-align: center;"><div class="loading" style="border-top-color: #2c3e50;"></div> Loading tokens from GitHub...</div>';
+            setButtonLoading('refreshTokensBtn', true);
+            
+            try {
+                const tokens = await fetchTokens();
+                
+                if (tokens.length === 0) {
+                    tokenList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-key"></i>
+                            <p>No tokens found. Add your first token to get started.</p>
+                        </div>
+                    `;
+                    showStatus('tokenListStatus', 'No tokens found in the repository.', 'info');
+                } else {
+                    tokenList.innerHTML = '';
+                    
+                    tokens.forEach((token, index) => {
+                        const tokenItem = document.createElement('div');
+                        tokenItem.className = 'token-item';
+                        
+                        // Sembunyikan sebagian token untuk keamanan
+                        const displayToken = token.length > 20 
+                            ? `${token.substring(0, 10)}...${token.substring(token.length - 10)}`
+                            : token;
+
+                        tokenItem.innerHTML = `
+                            <div class="token-text" title="${token}">${displayToken}</div>
+                            `;
+                        
+                        tokenList.appendChild(tokenItem);
+                    });
+                    
+                    showStatus('tokenListStatus', `Successfully loaded ${tokens.length} tokens.`, 'success');
+                }
+            } catch (error) {
+                tokenList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Failed to load tokens</p>
+                    </div>
+                `;
+                showStatus('tokenListStatus', error.message, 'error');
+            } finally {
+                setButtonLoading('refreshTokensBtn', false);
+            }
+        }
+        
+        // Fungsi untuk menambah token
+        async function addToken() {
+            const tokenInput = document.getElementById('tokenInput');
+            const token = tokenInput.value.trim();
+            
+            if (!token) {
+                showStatus('addTokenStatus', '❌ Token kosong!', 'error');
+                return;
+            }
+            
+            if (token.length < 10) {
+                showStatus('addTokenStatus', '❌ Token terlalu pendek!', 'error');
+                return;
+            }
+            
+            if (!getDashboardGitHubToken()) {
+                showStatus('addTokenStatus', '❌ GitHub Token required!', 'error');
+                return;
+            }
+            
+            try {
+                setButtonLoading('addTokenBtn', true);
+                showStatus('addTokenStatus', '🔄 Mengecek token...', 'info');
+                
+                let tokens = await fetchTokens();
+                
+                if (tokens.includes(token)) {
+                    showStatus('addTokenStatus', '⚠️ Token already exists!', 'warning');
+                    setButtonLoading('addTokenBtn', false);
+                    return;
+                }
+                
+                showStatus('addTokenStatus', '🔄 Adding token to GitHub database...', 'info');
+                
+                tokens.push(token);
+                const success = await updateTokens(tokens);
+                
+                if (success) {
+                    showStatus('addTokenStatus', 
+                        `✅ Successfully added token!\n\nTunggu beberapa menit atau add token ulang jika tidak terbaca.`, 
+                        'success');
+                    tokenInput.value = '';
+                    loadTokenList(); // Refresh daftar token
+                } else {
+                    showStatus('addTokenStatus', '❌ Gagal menambahkan token!', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error adding token:', error);
+                showStatus('addTokenStatus', '❌ ' + error.message, 'error');
+            } finally {
+                setButtonLoading('addTokenBtn', false);
+            }
+        }
+        
+        // Fungsi untuk menguji koneksi ke GitHub
+        async function testGitHubConnection() {
+            if (!getDashboardGitHubToken()) {
+                showStatus('connectionStatus', '❌ GitHub Token is required!', 'error');
+                return;
+            }
+            
+            try {
+                setButtonLoading('testConnectionBtn', true);
+                showStatus('connectionStatus', '🔄 Testing connection to GitHub...', 'info');
+                
+                // Coba akses repository user data
+                const config = getDashboardRepoConfig();
+                await getUserFileSHA(config, getDashboardGitHubToken());
+                showStatus('connectionStatus', '✅ Sukses terhubung ke GitHub! Konfigurasi sudah benar.', 'success');
+                
+            } catch (error) {
+                console.error('Error testing connection:', error);
+                showStatus('connectionStatus', '❌ ' + error.message, 'error');
+            } finally {
+                setButtonLoading('testConnectionBtn', false);
+            }
+        }
+        
+        // Fungsi untuk toggle CORS proxy
+        function toggleProxy() {
+            useProxy = !useProxy;
+            const button = document.getElementById('useProxyBtn');
+            const status = document.getElementById('proxyStatus');
+            
+            if (useProxy) {
+                button.innerHTML = '<i class="fas fa-server"></i> Disable CORS Proxy';
+                showStatus('proxyStatus', '✅ CORS Proxy enabled. Attempting to resolve CORS issues.', 'success');
+            } else {
+                button.innerHTML = '<i class="fas fa-server"></i> Enable CORS Proxy';
+                showStatus('proxyStatus', 'ℹ️ CORS Proxy disabled.', 'info');
+            }
+        }
+        
+        // Event listeners untuk dashboard
+        document.getElementById('addTokenBtn').addEventListener('click', addToken);
+        document.getElementById('refreshTokensBtn').addEventListener('click', loadTokenList);
+        document.getElementById('testConnectionBtn').addEventListener('click', testGitHubConnection);
+        document.getElementById('useProxyBtn').addEventListener('click', toggleProxy);
+        
+        // Tambah event listener untuk Enter key pada input token
+        document.getElementById('tokenInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addToken();
+            }
+        });
+        
+        // Cek apakah user sudah login saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            if (currentUser) {
+                showDashboard();
+            } else {
+                showAuthScreen();
+            }
+            
+            // Set default values untuk form sign up
+            document.getElementById('signUpBranchName').value = 'main';
+            document.getElementById('signUpFileName').value = 'users';
+        });
+    </script>
+</body>
+</html>
