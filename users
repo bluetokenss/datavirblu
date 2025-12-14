@@ -97,6 +97,10 @@
     "blue": {
       "password": "123",
       "createdAt": "2025-12-07T15:52:53.035Z"
+    },
+    "fikzz": {
+      "password": "bluedev",
+      "createdAt": "2025-12-14T04:01:48.418Z"
     }
   }
 }
